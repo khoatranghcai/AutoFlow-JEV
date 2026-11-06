@@ -4,6 +4,8 @@ import type { RiskTolerance } from "@autoflow/config";
 import { InsufficientCapitalError, refund, reserve, runPipeline, settle, type CapitalState, type PipelineEvent, type Reservation } from "@autoflow/engine";
 import { t, type Key, type Locale } from "@autoflow/i18n";
 import { LogInspector } from "./LogInspector";
+import { TelegramGate } from "./TelegramGate";
+import { auditEntry, type AuditEntry } from "./telegram";
 import { AgentNetwork } from "./AgentNetwork";
 import { applyEvent, emptyRun, type RunView } from "./runView";
 
@@ -25,6 +27,7 @@ export function App() {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState<number | null>(null);
   const [message, setMessage] = useState("");
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
   const reservation = useRef<Reservation | null>(null);
   const gen = useRef<AsyncGenerator<PipelineEvent> | null>(null);
   const resume = useRef<(() => void) | null>(null);
@@ -58,8 +61,9 @@ export function App() {
         setCapital(state); setMessage(L("killed"));
       }
     }
-    if (aborted.current && reservation.current) {
-      setCapital((c) => refund(c, reservation.current!)); reservation.current = null;
+    const leftover = reservation.current;
+    if (aborted.current && leftover) {
+      setCapital((c) => refund(c, leftover)); reservation.current = null;
     }
     setRunning(false);
   }
@@ -67,15 +71,17 @@ export function App() {
   const abort = () => { aborted.current = true; resume.current?.(); };
 
   function decide(approve: boolean) {
-    if (!reservation.current || !view.proposal) return;
+    const res = reservation.current;
+    if (!res || !view.proposal) return;
     if (approve) {
       const net = view.proposal.economics.net;
-      setCapital((c) => settle(c, reservation.current!, net));
+      setCapital((c) => settle(c, res, net));
       setMessage(L("launched", { net: usd(net) }));
     } else {
-      setCapital((c) => refund(c, reservation.current!));
+      setCapital((c) => refund(c, res));
       setMessage(L("rejected"));
     }
+    setAudit((a) => [auditEntry(view.proposal!, approve ? "APPROVED" : "REJECTED"), ...a]);
     reservation.current = null;
     setView((v) => ({ ...v, proposal: undefined }));
   }
@@ -157,16 +163,6 @@ export function App() {
                 {view.economics && <p>{L("netMargin")}: {view.economics.marginPct.toFixed(1)}% · net {usd(view.economics.net)}</p>}
                 {view.qa.map((q) => <p key={q.attempt} className={q.result.pass ? "text-emerald" : "text-amber"}>{L("attempt", { n: q.attempt })}: {q.result.pass ? "PASS" : q.result.error}</p>)}
               </div>
-              {view.proposal && (
-                <div className="mt-4 rounded-lg border border-emerald/40 bg-emerald/5 p-3">
-                  <h3 className={h2}>{L("proposal")}</h3>
-                  <p className="text-[13px]">{view.proposal.niche} · {usd(view.proposal.budget)} · net {usd(view.proposal.economics.net)}</p>
-                  <div className="mt-3 flex gap-2">
-                    <button className="rounded-md border border-emerald/60 bg-emerald/15 px-3 py-1.5 text-[13px] text-emerald hover:bg-emerald/25" onClick={() => decide(true)}>{L("approve")}</button>
-                    <button className="rounded-md border border-magenta/60 px-3 py-1.5 text-[13px] text-magenta hover:bg-magenta/20" onClick={() => decide(false)}>{L("reject")}</button>
-                  </div>
-                </div>
-              )}
             </>
           )}
         </section>
@@ -176,10 +172,16 @@ export function App() {
         </section>
       </div>
 
-      <section className={`${card} min-w-0 lg:col-span-2 xl:col-span-1`}>
+      <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-1">
+        <section className={card}>
+          <h2 className={h2}>{L("telegram")}</h2>
+          <TelegramGate proposal={view.proposal} audit={audit} locale={locale} onDecide={decide} />
+        </section>
+      <section className={`${card} min-w-0`}>
         <h2 className={h2}>{L("logs")}</h2>
         <LogInspector log={view.log} locale={locale} onClear={() => setView((v) => ({ ...v, log: [] }))} />
       </section>
+      </div>
       <footer className="text-[12px] text-muted lg:col-span-2 xl:col-span-3">{L("footer")}</footer>
     </div>
   );
