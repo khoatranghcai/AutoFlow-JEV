@@ -17,7 +17,11 @@ importers:
 
   packages/config: {}
 
-  packages/engine: {}
+  packages/engine:
+    dependencies:
+      '@autoflow/config':
+        specifier: workspace:*
+        version: link:../config
 
   packages/i18n: {}
 
