@@ -9,6 +9,8 @@ export interface NicheIdea {
   potential: number;
   name: { en: string; vi: string };
   why: { en: string; vi: string };
+  /** Trend or signal the idea is based on (only set for AI-generated ideas). */
+  trend?: { en: string; vi: string };
 }
 
 export const NICHE_IDEAS: readonly NicheIdea[] = [

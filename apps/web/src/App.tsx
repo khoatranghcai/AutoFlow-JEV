@@ -19,7 +19,19 @@ export function App() {
 
   const [niche, setNiche] = useState("");
   const [ideas, setIdeas] = useState<NicheIdea[]>([]);
-  const suggest = () => setIdeas(suggestNiches(Math.floor(Math.random() * 2 ** 31), 6));
+  const [ideaSource, setIdeaSource] = useState<"claude" | "catalog" | null>(null);
+  const [ideaNote, setIdeaNote] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+  async function suggest() {
+    setIdeaNote("");
+    if (!api.LIVE) { setIdeaSource("catalog"); return setIdeas(suggestNiches(Math.floor(Math.random() * 2 ** 31), 6)); }
+    setSuggesting(true);
+    try {
+      const r = await api.suggestNiches(ideas.map((i) => i.name.en));
+      setIdeas(r.ideas); setIdeaSource(r.source); setIdeaNote(r.note ?? "");
+    } catch { setIdeas(suggestNiches(Math.floor(Math.random() * 2 ** 31), 6)); setIdeaSource("catalog"); setIdeaNote("api_unreachable"); }
+    setSuggesting(false);
+  }
   const [tolerance, setTolerance] = useState<RiskTolerance>("MED");
   const [budget, setBudget] = useState(30);
   const [armBug, setArmBug] = useState(false);
@@ -161,7 +173,12 @@ export function App() {
           <h2 className={h2}>{L("controls")}</h2>
           <label className={lbl}>{L("niche")}</label>
           <input className={field} type="text" value={niche} placeholder={L("nichePh")} onChange={(e) => setNiche(e.target.value)} disabled={running} />
-          <button className={`${btn} mt-2 w-full`} onClick={suggest} disabled={running}>{L("suggestNiche")}</button>
+          <button className={`${btn} mt-2 w-full`} onClick={suggest} disabled={running || suggesting}>{suggesting ? L("suggesting") : L("suggestNiche")}</button>
+          {ideas.length > 0 && ideaSource && (
+            <p className={`mt-2 font-mono text-[10.5px] uppercase tracking-wider ${ideaSource === "claude" ? "text-emerald" : "text-amber"}`}>
+              {ideaSource === "claude" ? L("ideasAi") : L("ideasCatalog")}{ideaNote && ` · ${ideaNote}`}
+            </p>
+          )}
           {ideas.length > 0 && (
             <ul className="mt-2 flex flex-col gap-1.5">
               {ideas.map((i) => (
@@ -173,6 +190,7 @@ export function App() {
                     </span>
                     <span className="mt-0.5 block text-[12.5px] text-ink">{i.name[locale]}</span>
                     <span className="block text-[11.5px] text-muted">{i.why[locale]}</span>
+                    {i.trend && <span className="mt-0.5 block text-[11px] text-cyan/70">{L("trendLabel")}: {i.trend[locale]}</span>}
                   </button>
                 </li>
               ))}

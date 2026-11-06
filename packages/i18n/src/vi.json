@@ -87,5 +87,9 @@
   "cat.service": "Dịch vụ",
   "cat.education": "Giáo dục",
   "cat.community": "Cộng đồng",
-  "cat.data": "Dữ liệu & cảnh báo"
+  "cat.data": "Dữ liệu & cảnh báo",
+  "suggesting": "Đang tìm xu hướng...",
+  "ideasAi": "AI + xu hướng web",
+  "ideasCatalog": "Kho có sẵn",
+  "trendLabel": "Xu hướng"
 }

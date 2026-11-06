@@ -44,3 +44,5 @@ Chế độ live (web dùng API, cần API đang chạy): `pnpm --filter @autofl
 **Lấy khóa Supabase**: Supabase Dashboard > chọn project `autoflow-jev-staging` > Project Settings > API.
 `SUPABASE_URL` là *Project URL*; `SUPABASE_SERVICE_ROLE_KEY` là khóa `service_role` (secret) ở mục API Keys.
 Khóa này toàn quyền: chỉ để trong `apps/api/.env` (đã được `.gitignore` chặn), không commit, không dán vào chat.
+
+**Gợi ý niche bằng AI (tùy chọn)**: điền `ANTHROPIC_API_KEY` trong `apps/api/.env` (tạo khóa tại console.anthropic.com, mục API keys). API dùng Claude kèm tìm kiếm web để gợi ý niche theo xu hướng, có giới hạn tần suất (`NICHE_MIN_INTERVAL_SEC`), số lần mỗi ngày (`NICHE_MAX_CALLS_PER_DAY`) và ngân sách ước tính mỗi ngày (`NICHE_DAILY_BUDGET_USD`). Không có khóa hoặc gặp lỗi/giới hạn thì tự dùng kho có sẵn.
