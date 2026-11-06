@@ -39,6 +39,8 @@ Kiểm tra: mở http://127.0.0.1:8787/health, và http://127.0.0.1:8787/capital
 pnpm --filter @autoflow/web dev
 ```
 
+Chế độ live (web dùng API, cần API đang chạy): `pnpm --filter @autoflow/web dev:live`. Nhãn cạnh tiêu đề hiện `LIVE (staging)` khi API dùng Supabase.
+
 **Lấy khóa Supabase**: Supabase Dashboard > chọn project `autoflow-jev-staging` > Project Settings > API.
 `SUPABASE_URL` là *Project URL*; `SUPABASE_SERVICE_ROLE_KEY` là khóa `service_role` (secret) ở mục API Keys.
 Khóa này toàn quyền: chỉ để trong `apps/api/.env` (đã được `.gitignore` chặn), không commit, không dán vào chat.
