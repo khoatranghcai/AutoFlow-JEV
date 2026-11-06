@@ -1,8 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import {
-  checkPromptPack, checkSheetTemplate, promptPackToBundle, promptPackToMarkdown, sheetTemplateToBundle, sheetTemplateToMarkdown,
-  type ProductBundle, type ProductKind, type PromptPack, type QcReport, type SheetTemplate,
+  checkChecklist, checkPromptPack, checkSheetTemplate, checklistToBundle, checklistToMarkdown, promptPackToBundle, promptPackToMarkdown, sheetTemplateToBundle, sheetTemplateToMarkdown,
+  type ChecklistDoc, type ProductBundle, type ProductKind, type PromptPack, type QcReport, type SheetTemplate,
 } from "@autoflow/engine";
 import { createGuard } from "./nicheAi";
 
@@ -17,6 +17,11 @@ const SheetSchema = z.object({
   tabs: z.array(z.object({ name: z.string().min(1), purpose: z.string(), columns: z.array(z.string()).min(1), rows: z.array(z.array(z.string())) })).min(1),
 });
 
+const ChecklistSchema = z.object({
+  title: z.string().min(3), audience: z.string().min(3), summary: z.string().min(10),
+  sections: z.array(z.object({ heading: z.string().min(2), items: z.array(z.object({ text: z.string().min(3), note: z.string().optional() })).min(1) })).min(1),
+});
+
 const RULES = "No income guarantees, no placeholder text, no medical, legal or financial advice claims. English output.";
 const PACK_SYSTEM = `You write sellable prompt packs: ready-to-use prompts a buyer pastes into an AI assistant.
 Write for the given niche and audience. Make 15 distinct prompts. Each prompt has: name, useCase (one sentence), prompt (at least 3 sentences, with {variables} in curly braces the buyer fills in), example (a realistic sample of the output, not a description).
@@ -27,7 +32,12 @@ Write for the given niche and audience. Make 3 to 5 tabs that work together (for
 ${RULES}
 Final answer: ONLY JSON: {"title","audience","summary","instructions","tabs":[{"name","purpose","columns":[...],"rows":[[...]]}]}.`;
 
-export interface Built { kind: ProductKind; content: PromptPack | SheetTemplate; qc: QcReport; bundle: ProductBundle; markdown: string }
+const CHECKLIST_SYSTEM = `You write sellable printable checklists that a buyer follows step by step.
+Write for the given niche and audience. Make 4 to 7 sections in the order a person actually works. Each section has a heading and at least 5 concrete, distinct, actionable items (each at least 8 characters, a full action, no duplicates across the whole document); "note" is an optional short tip.
+Plain English with standard ASCII punctuation only. ${"No income guarantees, no placeholder text, no medical, legal or financial advice claims."}
+Final answer: ONLY JSON: {"title","audience","summary","sections":[{"heading","items":[{"text","note"?}]}]}.`;
+
+export interface Built { kind: ProductKind; content: PromptPack | SheetTemplate | ChecklistDoc; qc: QcReport; bundle: ProductBundle; markdown: string }
 export type BuildResult = ({ ok: true; attempts: number } & Built) | { ok: false; reason: string };
 
 const KINDS = {
@@ -43,6 +53,13 @@ const KINDS = {
     make(json: unknown): Built {
       const content = SheetSchema.parse(json);
       return { kind: "sheet_template", content, qc: checkSheetTemplate(content), bundle: sheetTemplateToBundle(content), markdown: sheetTemplateToMarkdown(content) };
+    },
+  },
+  checklist: {
+    system: CHECKLIST_SYSTEM, maxTokens: 12000,
+    make(json: unknown): Built {
+      const content = ChecklistSchema.parse(json);
+      return { kind: "checklist", content, qc: checkChecklist(content), bundle: checklistToBundle(content), markdown: checklistToMarkdown(content) };
     },
   },
 } as const;
@@ -82,6 +99,7 @@ export function createBuilder({ client, guard, model = "claude-opus-5-5", maxFix
   return {
     build,
     buildPromptPack: (input: { niche: string; audience?: string }) => build("prompt_pack", input),
+    buildChecklist: (input: { niche: string; audience?: string }) => build("checklist", input),
     buildSheetTemplate: (input: { niche: string; audience?: string }) => build("sheet_template", input),
   };
 }

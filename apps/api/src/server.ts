@@ -1,7 +1,8 @@
 import Fastify from "fastify";
 import { z } from "zod";
 import { createSimAgents } from "@autoflow/agents";
-import { InsufficientCapitalError, runPipeline } from "@autoflow/engine";
+import { InsufficientCapitalError, runPipeline, type ChecklistDoc } from "@autoflow/engine";
+import { checklistToPdf } from "./pdf";
 import { ConflictError, NotFoundError, type Repo } from "./repo";
 import { createGuard, createNicheService, type NicheService } from "./nicheAi";
 import { createBuilder, type Builder } from "./builder";
@@ -43,7 +44,7 @@ export function buildServer({ repo, products = createMemoryProductStore(), maxRu
   app.get("/health", async () => ({ ok: true, backend }));
 
   const BuildBody = z.object({ niche: z.string().min(3).max(200), audience: z.string().max(200).optional() });
-  for (const [path, kind] of [["prompt-pack", "prompt_pack"], ["sheet-template", "sheet_template"]] as const) {
+  for (const [path, kind] of [["prompt-pack", "prompt_pack"], ["sheet-template", "sheet_template"], ["checklist", "checklist"]] as const) {
     app.post(`/products/${path}`, async (req, reply) => {
       const body = BuildBody.parse(req.body);
       const out = await builder.build(kind, body);
@@ -55,6 +56,12 @@ export function buildServer({ repo, products = createMemoryProductStore(), maxRu
   }
   app.get("/products", async () => products.list());
   app.get<{ Params: { id: string } }>("/products/:id", async (req) => products.get(req.params.id));
+  app.get<{ Params: { id: string } }>("/products/:id/checklist.pdf", async (req, reply) => {
+    const p = await products.get(req.params.id);
+    if (p.kind !== "checklist") return reply.code(404).send({ error: "not_found" });
+    const pdf = await checklistToPdf(p.content as ChecklistDoc);
+    return reply.header("content-type", "application/pdf").send(Buffer.from(pdf));
+  });
   for (const [path, action] of [["approve", "approved"], ["reject", "rejected"]] as const) {
     app.post<{ Params: { id: string } }>(`/products/:id/${path}`, async (req) => {
       const { decidedBy } = DecisionBody.parse(req.body);

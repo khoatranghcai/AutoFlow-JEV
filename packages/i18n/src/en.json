@@ -108,5 +108,7 @@
   "products.simOnly": "Product building needs live mode (pnpm --filter @autoflow/web dev:live).",
   "products.kind.prompt_pack": "Prompt pack",
   "products.kind.sheet_template": "Notion/Sheets template",
-  "products.kindLabel": "Product type"
+  "products.kindLabel": "Product type",
+  "products.kind.checklist": "Checklist (PDF)",
+  "products.pdf": "Download PDF"
 }

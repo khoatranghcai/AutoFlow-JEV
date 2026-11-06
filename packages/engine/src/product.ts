@@ -52,7 +52,7 @@ export function promptPackToBundle(p: PromptPack, priceCents = 1500): ProductBun
   };
 }
 
-export type ProductKind = "prompt_pack" | "sheet_template";
+export type ProductKind = "prompt_pack" | "sheet_template" | "checklist";
 
 /** A spreadsheet/database template. Each tab becomes one CSV, which imports into Google Sheets and Notion. */
 export interface SheetTemplate {
@@ -106,5 +106,46 @@ export function sheetTemplateToBundle(s: SheetTemplate, priceCents = 1900): Prod
     title: s.title, description: s.summary, priceCents, currency: "USD",
     files: [{ name: "README.md", bytes: Buffer.byteLength(sheetTemplateToMarkdown(s)) }, ...s.tabs.map((t) => ({ name: `${t.name.replace(/[^\w-]+/g, "_")}.csv`, bytes: Buffer.byteLength(tabToCsv(t)) }))],
     tags: ["template", "notion", "google-sheets"],
+  };
+}
+
+/** A printable checklist / template document, rendered to PDF by the API. */
+export interface ChecklistDoc {
+  title: string;
+  audience: string;
+  summary: string;
+  sections: { heading: string; items: { text: string; note?: string }[] }[];
+}
+
+export function checkChecklist(c: ChecklistDoc, opts: { minSections?: number; minItems?: number } = {}): QcReport {
+  const issues: QcIssue[] = [];
+  const minS = opts.minSections ?? 4, minI = opts.minItems ?? 5;
+  if (c.sections.length < minS) issues.push({ code: "too_few_sections", detail: `${c.sections.length} < ${minS}` });
+  const seen = new Set<string>();
+  for (const s of c.sections) {
+    if (s.items.length < minI) issues.push({ code: "too_few_items", detail: `${s.heading}: ${s.items.length} < ${minI}` });
+    for (const it of s.items) {
+      const k = it.text.trim().toLowerCase();
+      if (k.length < 8) issues.push({ code: "item_too_short", detail: `${s.heading}: ${it.text}` });
+      if (seen.has(k)) issues.push({ code: "duplicate_item", detail: it.text });
+      seen.add(k);
+    }
+  }
+  const all = [c.title, c.summary, ...c.sections.flatMap((s) => [s.heading, ...s.items.flatMap((i) => [i.text, i.note ?? ""])])].join("\n");
+  if (CLAIMS.test(all)) issues.push({ code: "income_claim", detail: "contains income or guarantee claims" });
+  if (PLACEHOLDER.test(all)) issues.push({ code: "placeholder_text", detail: "contains placeholder text" });
+  return { passed: issues.length === 0, score: Math.max(0, 100 - issues.length * 8), issues };
+}
+
+export function checklistToMarkdown(c: ChecklistDoc): string {
+  const body = c.sections.map((s) => `## ${s.heading}\n\n${s.items.map((i) => `- [ ] ${i.text}${i.note ? ` (${i.note})` : ""}`).join("\n")}\n`).join("\n");
+  return `# ${c.title}\n\n*For: ${c.audience}*\n\n${c.summary}\n\n${body}`;
+}
+
+export function checklistToBundle(c: ChecklistDoc, priceCents = 900): ProductBundle {
+  return {
+    title: c.title, description: c.summary, priceCents, currency: "USD",
+    files: [{ name: "checklist.pdf", bytes: 0 }, { name: "checklist.md", bytes: Buffer.byteLength(checklistToMarkdown(c)) }],
+    tags: ["checklist", "template", "pdf"],
   };
 }
