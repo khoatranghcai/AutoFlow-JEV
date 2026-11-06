@@ -32,3 +32,6 @@ export const getEvents = async (runId: string) =>
 export const getProposals = () => call<LiveProject[]>("/proposals");
 export const decideProposal = (projectId: string, approve: boolean, decidedBy: string) =>
   call(`/proposals/${projectId}/${approve ? "approve" : "reject"}`, { method: "POST", body: JSON.stringify({ decidedBy }) });
+
+/** Which storage the API is using ("supabase" or "in-memory"), so the UI can say what is really live. */
+export const getBackend = async () => (await call<{ backend?: string }>("/health")).backend ?? "unknown";

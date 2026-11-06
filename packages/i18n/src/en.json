@@ -73,5 +73,9 @@
   "auditTrail": "Audit trail",
   "telegram": "Telegram Gate",
   "err.api": "API request failed. Is the API running?",
-  "err.overCap": "Budget is above the per-run cap."
+  "err.overCap": "Budget is above the per-run cap.",
+  "mode.sim": "SIMULATION",
+  "mode.live": "LIVE (staging)",
+  "mode.liveOther": "LIVE API ({backend})",
+  "footerLive": "Live mode: capital is held and settled by the API in the staging database (test money). Pipeline results are still simulated; no real money is spent."
 }

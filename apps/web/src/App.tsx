@@ -72,7 +72,12 @@ export function App() {
   // Live mode: the server owns the money. The browser only asks, then re-reads balances.
   const projectId = useRef<string | null>(null);
   const refreshCapital = () => api.getCapital().then(setCapital).catch(() => setMessage(L("err.api")));
-  useEffect(() => { if (api.LIVE) void refreshCapital(); }, []);
+  const [backend, setBackend] = useState<string | null>(null);
+  useEffect(() => {
+    if (!api.LIVE) return;
+    void refreshCapital();
+    api.getBackend().then(setBackend).catch(() => setBackend("offline"));
+  }, []);
 
   async function runLive() {
     if (!niche.trim()) return setMessage(L("err.noNiche"));
@@ -136,7 +141,12 @@ export function App() {
   return (
     <div className="mx-auto grid max-w-[1680px] gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_380px]">
       <header className="flex flex-wrap items-center justify-between gap-3 lg:col-span-2 xl:col-span-3">
-        <h1 className="text-xl font-bold tracking-wide">{L("title")}</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl font-bold tracking-wide">{L("title")}</h1>
+          <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] tracking-wider ${!api.LIVE ? "border-amber/60 text-amber" : backend === "supabase" ? "border-emerald/60 text-emerald" : "border-magenta/60 text-magenta"}`}>
+            {!api.LIVE ? L("mode.sim") : backend === "supabase" ? L("mode.live") : L("mode.liveOther", { backend: backend ?? "..." })}
+          </span>
+        </div>
         <label className="flex items-center gap-2 text-[12px] text-muted">{L("language")}
           <select className={`${field} w-auto`} value={locale} onChange={(e) => setLocale(e.target.value as Locale)}>
             <option value="en">EN</option><option value="vi">VI</option>
@@ -219,7 +229,7 @@ export function App() {
         <LogInspector log={view.log} locale={locale} onClear={() => setView((v) => ({ ...v, log: [] }))} />
       </section>
       </div>
-      <footer className="text-[12px] text-muted lg:col-span-2 xl:col-span-3">{L("footer")}</footer>
+      <footer className="text-[12px] text-muted lg:col-span-2 xl:col-span-3">{api.LIVE ? L("footerLive") : L("footer")}</footer>
     </div>
   );
 }
