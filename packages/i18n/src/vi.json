@@ -42,5 +42,20 @@
   "netMargin": "Biên ròng",
   "riskScore": "Điểm rủi ro",
   "language": "Ngôn ngữ",
-  "pausedBefore": "Đã dừng trước giai đoạn {n}"
+  "pausedBefore": "Đã dừng trước giai đoạn {n}",
+  "agentNet": "Mạng lưới Agent",
+  "role.killmyidea": "Kiểm tra sức chịu",
+  "role.chess": "Hoạch định chiến thuật",
+  "role.doom": "Mô phỏng kịch bản xấu",
+  "role.tax": "Kiểm toán chi phí",
+  "role.trader": "Bộ máy biên lợi nhuận",
+  "role.builder": "Thực thi",
+  "role.validator": "QA cách ly",
+  "role.verdict": "Bộ máy 3 phán quyết",
+  "role.hitl": "Cổng duyệt Telegram",
+  "st.idle": "chờ",
+  "st.active": "đang chạy",
+  "st.done": "xong",
+  "st.error": "lỗi",
+  "st.warn": "chờ duyệt"
 }

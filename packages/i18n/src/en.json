@@ -42,5 +42,20 @@
   "netMargin": "Net margin",
   "riskScore": "Risk score",
   "language": "Language",
-  "pausedBefore": "Paused before phase {n}"
+  "pausedBefore": "Paused before phase {n}",
+  "agentNet": "Agent Network",
+  "role.killmyidea": "Stress Test",
+  "role.chess": "Tactical Planner",
+  "role.doom": "Worst-Case Sim",
+  "role.tax": "Cost Auditor",
+  "role.trader": "Margin Engine",
+  "role.builder": "Executor",
+  "role.validator": "QA Sandbox",
+  "role.verdict": "3-Verdict Engine",
+  "role.hitl": "Telegram Gate",
+  "st.idle": "idle",
+  "st.active": "working",
+  "st.done": "done",
+  "st.error": "error",
+  "st.warn": "waiting"
 }
