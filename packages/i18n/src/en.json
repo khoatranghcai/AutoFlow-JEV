@@ -1,0 +1,12 @@
+{
+  "title": "AutoFlow Swarm Engine",
+  "verdict.KILL": "KILL",
+  "verdict.FIX": "FIX",
+  "verdict.SHIP": "SHIP",
+  "phase.0": "Ingestion & Stress Test",
+  "phase.1": "Tactical & Risk Sim",
+  "phase.2": "Audit & Margin Check",
+  "phase.3": "Build & Sandbox QA",
+  "phase.4": "3-Verdict Decision",
+  "attempt": "Attempt {n}/3"
+}
