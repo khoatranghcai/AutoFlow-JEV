@@ -31,4 +31,11 @@ describe("builder", () => {
     expect(!out.ok && out.reason).toContain("qc_failed");
     expect(await createBuilder({ guard: guard() }).buildPromptPack({ niche: "x" })).toEqual({ ok: false, reason: "no_api_key" });
   });
+  it("builds a sheet template and checks it", async () => {
+    const tab = (n: string) => ({ name: n, purpose: "Track", columns: ["Date", "Item", "Amount"], rows: Array.from({ length: 5 }, (_, i) => [`d${i}`, `i${i}`, `=SUM(A${i + 1})`]) });
+    const sheet = JSON.stringify({ title: "Budget", audience: "freelancers", summary: "A monthly budget sheet.", instructions: "Duplicate the sheet each month. Fill in the Income tab first, then add expenses as they happen. Never overwrite the formulas in the Summary tab, because they total everything automatically.", tabs: [tab("Income"), tab("Expenses"), tab("Summary")] });
+    const out = await createBuilder({ client: fake(reply(sheet)).client, guard: guard() }).buildSheetTemplate({ niche: "budget" });
+    expect(out.ok && out.kind).toBe("sheet_template");
+    expect(out.ok && out.bundle.files.length).toBe(4);
+  });
 });

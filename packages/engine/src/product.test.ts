@@ -31,3 +31,28 @@ describe("prompt pack QC", () => {
     expect(b.currency).toBe("USD");
   });
 });
+
+import { checkSheetTemplate, sheetTemplateToBundle, tabToCsv, type SheetTemplate } from "./product";
+const tab = (name: string) => ({ name, purpose: "Track things", columns: ["Date", "Item", "Amount"], rows: Array.from({ length: 5 }, (_, i) => [`2026-01-0${i + 1}`, `Item, ${i}`, `=SUM(B${i + 1}:C${i + 1})`]) });
+const sheet = (): SheetTemplate => ({
+  title: "Budget tracker", audience: "freelancers", summary: "A simple monthly budget.",
+  instructions: "Duplicate the sheet each month. Fill in the Income tab first, then add expenses as they happen. The Summary tab totals everything automatically, so never overwrite the formulas in the grey cells.",
+  tabs: [tab("Income"), tab("Expenses"), tab("Summary")],
+});
+describe("sheet template QC", () => {
+  it("passes a good template and exports CSV with quoting", () => {
+    expect(checkSheetTemplate(sheet()).passed).toBe(true);
+    expect(tabToCsv(sheet().tabs[0]!)).toContain('"Item, 0"');
+    const b = sheetTemplateToBundle(sheet());
+    expect(b.files.map((f) => f.name)).toEqual(["README.md", "Income.csv", "Expenses.csv", "Summary.csv"]);
+  });
+  it("flags ragged rows, bad formulas, duplicates, few tabs, claims", () => {
+    const s = sheet();
+    s.tabs = [s.tabs[0]!, { ...s.tabs[0]! }];
+    s.tabs[0]!.rows[0] = ["a", "b"];
+    s.tabs[1]!.rows[1]![2] = "=SUM(A1";
+    s.summary = "Guaranteed passive income";
+    const codes = checkSheetTemplate(s).issues.map((i) => i.code);
+    for (const c of ["too_few_tabs", "duplicate_tab", "ragged_row", "bad_formula", "income_claim"]) expect(codes).toContain(c);
+  });
+});

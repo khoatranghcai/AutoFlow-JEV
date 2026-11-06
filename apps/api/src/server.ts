@@ -42,14 +42,17 @@ export function buildServer({ repo, products = createMemoryProductStore(), maxRu
 
   app.get("/health", async () => ({ ok: true, backend }));
 
-  app.post("/products/prompt-pack", async (req, reply) => {
-    const body = z.object({ niche: z.string().min(3).max(200), audience: z.string().max(200).optional() }).parse(req.body);
-    const out = await builder.buildPromptPack(body);
-    if (!out.ok) { reply.code(out.reason === "no_api_key" ? 503 : 422); return out; }
-    // Queued for human review. Nothing is listed anywhere and no money moves.
-    const product = await products.add({ niche: body.niche, pack: out.pack, qc: out.qc, bundle: out.bundle, markdown: out.markdown });
-    return reply.code(201).send({ ...out, product });
-  });
+  const BuildBody = z.object({ niche: z.string().min(3).max(200), audience: z.string().max(200).optional() });
+  for (const [path, kind] of [["prompt-pack", "prompt_pack"], ["sheet-template", "sheet_template"]] as const) {
+    app.post(`/products/${path}`, async (req, reply) => {
+      const body = BuildBody.parse(req.body);
+      const out = await builder.build(kind, body);
+      if (!out.ok) { reply.code(out.reason === "no_api_key" ? 503 : 422); return out; }
+      // Queued for human review. Nothing is listed anywhere and no money moves.
+      const product = await products.add({ kind: out.kind, niche: body.niche, content: out.content, qc: out.qc, bundle: out.bundle, markdown: out.markdown });
+      return reply.code(201).send({ ...out, product });
+    });
+  }
   app.get("/products", async () => products.list());
   app.get<{ Params: { id: string } }>("/products/:id", async (req) => products.get(req.params.id));
   for (const [path, action] of [["approve", "approved"], ["reject", "rejected"]] as const) {

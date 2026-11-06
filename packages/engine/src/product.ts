@@ -51,3 +51,60 @@ export function promptPackToBundle(p: PromptPack, priceCents = 1500): ProductBun
     tags: ["prompts", "ai"],
   };
 }
+
+export type ProductKind = "prompt_pack" | "sheet_template";
+
+/** A spreadsheet/database template. Each tab becomes one CSV, which imports into Google Sheets and Notion. */
+export interface SheetTemplate {
+  title: string;
+  audience: string;
+  summary: string;
+  instructions: string;
+  tabs: { name: string; purpose: string; columns: string[]; rows: string[][] }[];
+}
+
+const FORMULA_OK = (f: string) => {
+  let d = 0;
+  for (const c of f) { if (c === "(") d++; if (c === ")" && --d < 0) return false; }
+  return d === 0;
+};
+
+export function checkSheetTemplate(s: SheetTemplate, opts: { minTabs?: number; minRows?: number } = {}): QcReport {
+  const issues: QcIssue[] = [];
+  const minTabs = opts.minTabs ?? 3, minRows = opts.minRows ?? 5;
+  if (s.tabs.length < minTabs) issues.push({ code: "too_few_tabs", detail: `${s.tabs.length} < ${minTabs}` });
+  if (s.instructions.trim().length < 150) issues.push({ code: "instructions_too_short", detail: "how-to-use text is missing or too short" });
+  const names = new Set<string>();
+  for (const tab of s.tabs) {
+    const k = tab.name.trim().toLowerCase();
+    if (names.has(k)) issues.push({ code: "duplicate_tab", detail: tab.name });
+    names.add(k);
+    if (tab.columns.length < 3) issues.push({ code: "too_few_columns", detail: tab.name });
+    if (new Set(tab.columns.map((c) => c.trim().toLowerCase())).size !== tab.columns.length) issues.push({ code: "duplicate_column", detail: tab.name });
+    if (tab.rows.length < minRows) issues.push({ code: "too_few_rows", detail: `${tab.name}: ${tab.rows.length} < ${minRows}` });
+    tab.rows.forEach((r, i) => {
+      if (r.length !== tab.columns.length) issues.push({ code: "ragged_row", detail: `${tab.name} row ${i + 1}` });
+      r.forEach((cell) => { if (cell.startsWith("=") && !FORMULA_OK(cell)) issues.push({ code: "bad_formula", detail: `${tab.name} row ${i + 1}: ${cell}` }); });
+    });
+  }
+  const all = [s.title, s.summary, s.instructions, ...s.tabs.flatMap((t) => [t.name, t.purpose, ...t.columns, ...t.rows.flat()])].join("\n");
+  if (CLAIMS.test(all)) issues.push({ code: "income_claim", detail: "contains income or guarantee claims" });
+  if (PLACEHOLDER.test(all)) issues.push({ code: "placeholder_text", detail: "contains placeholder text" });
+  return { passed: issues.length === 0, score: Math.max(0, 100 - issues.length * 8), issues };
+}
+
+const csvCell = (c: string) => (/[",\n]/.test(c) ? `"${c.replace(/"/g, '""')}"` : c);
+export const tabToCsv = (t: SheetTemplate["tabs"][number]) => [t.columns, ...t.rows].map((r) => r.map(csvCell).join(",")).join("\n") + "\n";
+
+export function sheetTemplateToMarkdown(s: SheetTemplate): string {
+  const tabs = s.tabs.map((t, i) => `### ${i + 1}. ${t.name}\n\n${t.purpose}\n\nColumns: ${t.columns.join(", ")}\n`).join("\n");
+  return `# ${s.title}\n\n*For: ${s.audience}*\n\n${s.summary}\n\n## How to use\n\n${s.instructions}\n\n## Tabs\n\n${tabs}\n## Import\n\n- Google Sheets: File > Import > Upload each CSV file as a new sheet.\n- Notion: Import > CSV to create each tab as a database.\n`;
+}
+
+export function sheetTemplateToBundle(s: SheetTemplate, priceCents = 1900): ProductBundle {
+  return {
+    title: s.title, description: s.summary, priceCents, currency: "USD",
+    files: [{ name: "README.md", bytes: Buffer.byteLength(sheetTemplateToMarkdown(s)) }, ...s.tabs.map((t) => ({ name: `${t.name.replace(/[^\w-]+/g, "_")}.csv`, bytes: Buffer.byteLength(tabToCsv(t)) }))],
+    tags: ["template", "notion", "google-sheets"],
+  };
+}

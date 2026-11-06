@@ -94,7 +94,7 @@
   "trendLabel": "Xu hướng",
   "products.title": "Sản phẩm (hàng chờ duyệt)",
   "products.hint": "Duyệt chỉ đánh dấu sản phẩm sẵn sàng đăng bán. Chưa đăng lên đâu và không có tiền nào dịch chuyển.",
-  "products.niche": "Ngách cho gói prompt",
+  "products.niche": "Ngách cho sản phẩm",
   "products.build": "Tạo gói prompt",
   "products.building": "Đang tạo và kiểm tra chất lượng (có thể mất vài phút)...",
   "products.empty": "Chưa có sản phẩm.",
@@ -105,5 +105,8 @@
   "products.status.rejected": "Đã từ chối",
   "products.err.no_api_key": "API chưa có ANTHROPIC_API_KEY nên Builder đang tắt.",
   "products.err.generic": "Tạo thất bại: {reason}",
-  "products.simOnly": "Tạo sản phẩm cần chế độ live (pnpm --filter @autoflow/web dev:live)."
+  "products.simOnly": "Tạo sản phẩm cần chế độ live (pnpm --filter @autoflow/web dev:live).",
+  "products.kind.prompt_pack": "Gói prompt",
+  "products.kind.sheet_template": "Mẫu Notion/Sheets",
+  "products.kindLabel": "Loại sản phẩm"
 }
