@@ -8,6 +8,8 @@ export interface ServerOptions {
   repo: Repo;
   /** Hard cap on a single test budget, in cents. Enforced here, before any money is reserved. */
   maxRunBudgetCents?: number;
+  /** Reported by /health so operators can see which storage is live. */
+  backend?: "supabase" | "in-memory";
 }
 
 const RunBody = z.object({
@@ -19,7 +21,7 @@ const RunBody = z.object({
 });
 const DecisionBody = z.object({ decidedBy: z.string().trim().min(1).max(100) });
 
-export function buildServer({ repo, maxRunBudgetCents = 5_000 }: ServerOptions) {
+export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-memory" }: ServerOptions) {
   const app = Fastify();
 
   app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
@@ -30,7 +32,7 @@ export function buildServer({ repo, maxRunBudgetCents = 5_000 }: ServerOptions) 
     return reply.code(err.statusCode ?? 500).send({ error: "internal_error" });
   });
 
-  app.get("/health", async () => ({ ok: true }));
+  app.get("/health", async () => ({ ok: true, backend }));
 
   app.get("/capital", async () => repo.balances());
 
