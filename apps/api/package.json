@@ -1,9 +1,20 @@
 {
-  "name": "@autoflow/api", "version": "0.0.0", "private": true, "type": "module",
-  "scripts": { "start": "tsx src/main.ts" },
-  "dependencies": {
-    "@autoflow/agents": "workspace:*", "@autoflow/config": "workspace:*", "@autoflow/engine": "workspace:*",
-    "fastify": "^5.0.0", "zod": "^3.23.8"
+  "name": "@autoflow/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts"
   },
-  "devDependencies": { "tsx": "^4.19.0" }
+  "dependencies": {
+    "@autoflow/agents": "workspace:*",
+    "@autoflow/config": "workspace:*",
+    "@autoflow/engine": "workspace:*",
+    "@supabase/supabase-js": "^2.119.0",
+    "fastify": "^5.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
 }
