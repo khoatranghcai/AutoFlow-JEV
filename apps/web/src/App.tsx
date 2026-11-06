@@ -3,6 +3,7 @@ import { createSimAgents } from "@autoflow/agents";
 import type { RiskTolerance } from "@autoflow/config";
 import { InsufficientCapitalError, refund, reserve, runPipeline, settle, type CapitalState, type PipelineEvent, type Reservation } from "@autoflow/engine";
 import { t, type Key, type Locale } from "@autoflow/i18n";
+import { LogInspector } from "./LogInspector";
 import { AgentNetwork } from "./AgentNetwork";
 import { applyEvent, emptyRun, type RunView } from "./runView";
 
@@ -177,7 +178,7 @@ export function App() {
 
       <section className={`${card} min-w-0 lg:col-span-2 xl:col-span-1`}>
         <h2 className={h2}>{L("logs")}</h2>
-        <pre className="max-h-[520px] overflow-auto rounded-md bg-navy p-3 font-mono text-[11.5px] leading-snug text-muted">{JSON.stringify(view.log, null, 2)}</pre>
+        <LogInspector log={view.log} locale={locale} onClear={() => setView((v) => ({ ...v, log: [] }))} />
       </section>
       <footer className="text-[12px] text-muted lg:col-span-2 xl:col-span-3">{L("footer")}</footer>
     </div>
