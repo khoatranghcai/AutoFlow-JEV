@@ -77,5 +77,15 @@
   "mode.sim": "SIMULATION",
   "mode.live": "LIVE (staging)",
   "mode.liveOther": "LIVE API ({backend})",
-  "footerLive": "Live mode: capital is held and settled by the API in the staging database (test money). Pipeline results are still simulated; no real money is spent."
+  "footerLive": "Live mode: capital is held and settled by the API in the staging database (test money). Pipeline results are still simulated; no real money is spent.",
+  "suggestNiche": "Suggest niches",
+  "potential": "Potential",
+  "cat.template": "Templates",
+  "cat.digital": "Digital goods",
+  "cat.tool": "Small tools",
+  "cat.content": "Content",
+  "cat.service": "Services",
+  "cat.education": "Education",
+  "cat.community": "Community",
+  "cat.data": "Data & alerts"
 }

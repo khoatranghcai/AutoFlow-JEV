@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createSimAgents } from "@autoflow/agents";
 import type { RiskTolerance } from "@autoflow/config";
-import { InsufficientCapitalError, refund, reserve, runPipeline, settle, type CapitalState, type PipelineEvent, type Reservation } from "@autoflow/engine";
+import { InsufficientCapitalError, refund, reserve, runPipeline, settle, suggestNiches, type NicheIdea, type CapitalState, type PipelineEvent, type Reservation } from "@autoflow/engine";
 import { t, type Key, type Locale } from "@autoflow/i18n";
 import { LogInspector } from "./LogInspector";
 import { TelegramGate } from "./TelegramGate";
@@ -18,6 +18,8 @@ export function App() {
   const L = (k: Key, p?: Record<string, string | number>) => t(locale, k, p);
 
   const [niche, setNiche] = useState("");
+  const [ideas, setIdeas] = useState<NicheIdea[]>([]);
+  const suggest = () => setIdeas(suggestNiches(Math.floor(Math.random() * 2 ** 31), 6));
   const [tolerance, setTolerance] = useState<RiskTolerance>("MED");
   const [budget, setBudget] = useState(30);
   const [armBug, setArmBug] = useState(false);
@@ -159,6 +161,23 @@ export function App() {
           <h2 className={h2}>{L("controls")}</h2>
           <label className={lbl}>{L("niche")}</label>
           <input className={field} type="text" value={niche} placeholder={L("nichePh")} onChange={(e) => setNiche(e.target.value)} disabled={running} />
+          <button className={`${btn} mt-2 w-full`} onClick={suggest} disabled={running}>{L("suggestNiche")}</button>
+          {ideas.length > 0 && (
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {ideas.map((i) => (
+                <li key={i.id}>
+                  <button className="w-full rounded-md border border-line bg-navy/60 p-2 text-left transition hover:border-cyan disabled:opacity-50" disabled={running}
+                    onClick={() => { setNiche(i.name[locale]); setIdeas([]); }}>
+                    <span className="flex items-center justify-between gap-2 font-mono text-[10.5px] uppercase tracking-wider text-cyan/80">
+                      <span>{L(`cat.${i.category}` as Key)}</span><span className="text-emerald">{L("potential")} {i.potential}</span>
+                    </span>
+                    <span className="mt-0.5 block text-[12.5px] text-ink">{i.name[locale]}</span>
+                    <span className="block text-[11.5px] text-muted">{i.why[locale]}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
           <label className={lbl}>{L("risk")}</label>
           <select className={field} value={tolerance} onChange={(e) => setTolerance(e.target.value as RiskTolerance)} disabled={running}>
             {(["LOW", "MED", "HIGH"] as const).map((r) => <option key={r} value={r}>{L(`risk.${r}` as Key)}</option>)}

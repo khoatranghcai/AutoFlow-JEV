@@ -77,5 +77,15 @@
   "mode.sim": "MÔ PHỎNG",
   "mode.live": "LIVE (staging)",
   "mode.liveOther": "API LIVE ({backend})",
-  "footerLive": "Chế độ live: vốn được API giữ và quyết toán trong cơ sở dữ liệu staging (tiền test). Kết quả pipeline vẫn là mô phỏng; không có tiền thật nào bị chi."
+  "footerLive": "Chế độ live: vốn được API giữ và quyết toán trong cơ sở dữ liệu staging (tiền test). Kết quả pipeline vẫn là mô phỏng; không có tiền thật nào bị chi.",
+  "suggestNiche": "Gợi ý niche",
+  "potential": "Tiềm năng",
+  "cat.template": "Mẫu (template)",
+  "cat.digital": "Sản phẩm số",
+  "cat.tool": "Công cụ nhỏ",
+  "cat.content": "Nội dung",
+  "cat.service": "Dịch vụ",
+  "cat.education": "Giáo dục",
+  "cat.community": "Cộng đồng",
+  "cat.data": "Dữ liệu & cảnh báo"
 }
