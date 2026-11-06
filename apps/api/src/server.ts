@@ -5,6 +5,7 @@ import { InsufficientCapitalError, runPipeline } from "@autoflow/engine";
 import { ConflictError, NotFoundError, type Repo } from "./repo";
 import { createGuard, createNicheService, type NicheService } from "./nicheAi";
 import { createBuilder, type Builder } from "./builder";
+import { createMemoryProductStore, type ProductStore } from "./products";
 
 export interface ServerOptions {
   repo: Repo;
@@ -15,6 +16,7 @@ export interface ServerOptions {
   /** AI niche suggestions; defaults to the static catalog only. */
   niches?: NicheService;
   builder?: Builder;
+  products?: ProductStore;
 }
 
 const RunBody = z.object({
@@ -27,7 +29,7 @@ const RunBody = z.object({
 const SuggestBody = z.object({ count: z.number().int().min(1).max(10).default(6), exclude: z.array(z.string().max(200)).max(30).default([]) });
 const DecisionBody = z.object({ decidedBy: z.string().trim().min(1).max(100) });
 
-export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-memory", builder = createBuilder({ guard: createGuard({ minIntervalMs: 0, maxCallsPerDay: 0, dailyBudgetUsd: 0 }) }), niches = createNicheService({ guard: createGuard({ minIntervalMs: 0, maxCallsPerDay: 0, dailyBudgetUsd: 0 }) }) }: ServerOptions) {
+export function buildServer({ repo, products = createMemoryProductStore(), maxRunBudgetCents = 5_000, backend = "in-memory", builder = createBuilder({ guard: createGuard({ minIntervalMs: 0, maxCallsPerDay: 0, dailyBudgetUsd: 0 }) }), niches = createNicheService({ guard: createGuard({ minIntervalMs: 0, maxCallsPerDay: 0, dailyBudgetUsd: 0 }) }) }: ServerOptions) {
   const app = Fastify();
 
   app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
@@ -43,9 +45,19 @@ export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-mem
   app.post("/products/prompt-pack", async (req, reply) => {
     const body = z.object({ niche: z.string().min(3).max(200), audience: z.string().max(200).optional() }).parse(req.body);
     const out = await builder.buildPromptPack(body);
-    if (!out.ok) reply.code(out.reason === "no_api_key" ? 503 : 422);
-    return out;
+    if (!out.ok) { reply.code(out.reason === "no_api_key" ? 503 : 422); return out; }
+    // Queued for human review. Nothing is listed anywhere and no money moves.
+    const product = await products.add({ niche: body.niche, pack: out.pack, qc: out.qc, bundle: out.bundle, markdown: out.markdown });
+    return reply.code(201).send({ ...out, product });
   });
+  app.get("/products", async () => products.list());
+  app.get<{ Params: { id: string } }>("/products/:id", async (req) => products.get(req.params.id));
+  for (const [path, action] of [["approve", "approved"], ["reject", "rejected"]] as const) {
+    app.post<{ Params: { id: string } }>(`/products/:id/${path}`, async (req) => {
+      const { decidedBy } = DecisionBody.parse(req.body);
+      return products.decide(req.params.id, action, decidedBy);
+    });
+  }
   app.post("/niches/suggest", async (req) => {
     const body = SuggestBody.parse(req.body ?? {});
     return niches.suggest(body);

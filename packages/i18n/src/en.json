@@ -91,5 +91,19 @@
   "suggesting": "Searching trends...",
   "ideasAi": "AI + web trends",
   "ideasCatalog": "Built-in catalog",
-  "trendLabel": "Trend"
+  "trendLabel": "Trend",
+  "products.title": "Products (review queue)",
+  "products.hint": "Approving only marks a product ready to list. Nothing is published and no money moves.",
+  "products.niche": "Niche for a prompt pack",
+  "products.build": "Build prompt pack",
+  "products.building": "Building and checking quality (up to a few minutes)...",
+  "products.empty": "No products yet.",
+  "products.qc": "Quality {n}/100",
+  "products.view": "Preview",
+  "products.status.pending": "Pending",
+  "products.status.approved": "Approved (ready to list)",
+  "products.status.rejected": "Rejected",
+  "products.err.no_api_key": "The API has no ANTHROPIC_API_KEY, so the builder is off.",
+  "products.err.generic": "Build failed: {reason}",
+  "products.simOnly": "Product building needs live mode (pnpm --filter @autoflow/web dev:live)."
 }

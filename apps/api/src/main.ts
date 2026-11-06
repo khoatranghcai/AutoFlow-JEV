@@ -3,6 +3,7 @@ import { createMemoryRepo } from "./repo";
 import { createSupabaseRepoFromEnv } from "./supabaseRepo";
 import { createNicheServiceFromEnv } from "./nicheAi";
 import { createBuilderFromEnv } from "./builder";
+import { createProductStoreFromEnv } from "./products";
 
 // Load apps/api/.env when present (Node >= 20.12); real environment variables still win.
 try { process.loadEnvFile(new URL("../.env", import.meta.url)); } catch { /* no .env file */ }
@@ -17,6 +18,6 @@ if (!useDb) {
 }
 
 const backend = useDb ? "supabase" : "in-memory";
-const app = buildServer({ repo, backend, niches: createNicheServiceFromEnv(), builder: createBuilderFromEnv() });
+const app = buildServer({ repo, backend, niches: createNicheServiceFromEnv(), builder: createBuilderFromEnv(), products: createProductStoreFromEnv() });
 await app.listen({ port: Number(process.env.PORT ?? 8787), host: "127.0.0.1" });
 console.log(`AutoFlow API listening on :${process.env.PORT ?? 8787} using ${backend} storage; niche suggestions: ${process.env.ANTHROPIC_API_KEY ? "Claude" : "static catalog (no ANTHROPIC_API_KEY)"}`);
