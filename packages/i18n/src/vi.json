@@ -67,5 +67,9 @@
   "copyJson": "Sao chép JSON",
   "copied": "Đã chép",
   "clearLogs": "Xóa log",
-  "noLogs": "Không có sự kiện nào khớp."
+  "noLogs": "Không có sự kiện nào khớp.",
+  "noProposals": "Chưa có đề xuất. Các phán quyết PHÁT HÀNH sẽ xuất hiện ở đây để duyệt.",
+  "shipReady": "Đề xuất PHÁT HÀNH sẵn sàng",
+  "auditTrail": "Nhật ký duyệt",
+  "telegram": "Cổng duyệt Telegram"
 }

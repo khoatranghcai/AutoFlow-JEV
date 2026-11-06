@@ -67,5 +67,9 @@
   "copyJson": "Copy JSON",
   "copied": "Copied",
   "clearLogs": "Clear logs",
-  "noLogs": "No log events match."
+  "noLogs": "No log events match.",
+  "noProposals": "No proposals yet. SHIP verdicts land here for approval.",
+  "shipReady": "SHIP proposal ready",
+  "auditTrail": "Audit trail",
+  "telegram": "Telegram Gate"
 }
