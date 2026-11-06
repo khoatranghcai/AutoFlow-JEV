@@ -11,3 +11,34 @@ Monorepo (pnpm). See the planning doc for architecture and phases.
 pnpm install
 pnpm typecheck && pnpm test
 ```
+
+## Chạy local
+
+Cần Node >= 20.12 và pnpm (`npm i -g pnpm`).
+
+```
+git clone https://github.com/khoatranghcai/AutoFlow-JEV
+cd AutoFlow-JEV
+pnpm install
+```
+
+**API** (cổng 8787):
+
+```
+cp apps/api/.env.example apps/api/.env      # Windows: copy apps\api\.env.example apps\api\.env
+# mở apps/api/.env, điền SUPABASE_URL và SUPABASE_SERVICE_ROLE_KEY (xem dưới)
+pnpm --filter @autoflow/api start
+```
+
+Để trống hai biến thì API chạy với dữ liệu demo trong bộ nhớ (không dùng Supabase).
+Kiểm tra: mở http://127.0.0.1:8787/health, và http://127.0.0.1:8787/capital để xem số dư.
+
+**Web dashboard** (cổng 5173, hiện chạy độc lập bằng pipeline mô phỏng):
+
+```
+pnpm --filter @autoflow/web dev
+```
+
+**Lấy khóa Supabase**: Supabase Dashboard > chọn project `autoflow-jev-staging` > Project Settings > API.
+`SUPABASE_URL` là *Project URL*; `SUPABASE_SERVICE_ROLE_KEY` là khóa `service_role` (secret) ở mục API Keys.
+Khóa này toàn quyền: chỉ để trong `apps/api/.env` (đã được `.gitignore` chặn), không commit, không dán vào chat.
