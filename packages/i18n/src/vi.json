@@ -71,5 +71,7 @@
   "noProposals": "Chưa có đề xuất. Các phán quyết PHÁT HÀNH sẽ xuất hiện ở đây để duyệt.",
   "shipReady": "Đề xuất PHÁT HÀNH sẵn sàng",
   "auditTrail": "Nhật ký duyệt",
-  "telegram": "Cổng duyệt Telegram"
+  "telegram": "Cổng duyệt Telegram",
+  "err.api": "Gọi API thất bại. API có đang chạy không?",
+  "err.overCap": "Ngân sách vượt hạn mức mỗi lần chạy."
 }
