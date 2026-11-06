@@ -9,7 +9,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": [],
+    "types": [
+      "node"
+    ],
     "jsx": "react-jsx",
     "lib": [
       "ES2022",
