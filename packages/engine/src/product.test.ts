@@ -1,0 +1,33 @@
+import { describe, expect, it } from "vitest";
+import { checkPromptPack, promptPackToBundle, promptPackToMarkdown, type PromptPack } from "./product";
+
+const mk = (n: number) => ({
+  name: `Prompt ${n}`, useCase: "Plan the week",
+  prompt: `You are an expert planner. Using {topic}, write a detailed weekly plan number ${n} with priorities and time blocks.`,
+  example: "Monday: deep work 9-11, review inbox 11-11:30, call with client at 14:00.",
+});
+const pack = (count = 15): PromptPack => ({ title: "Planner prompts", audience: "freelancers", summary: "Fifteen prompts for planning.", prompts: Array.from({ length: count }, (_, i) => mk(i + 1)) });
+
+describe("prompt pack QC", () => {
+  it("passes a good pack", () => {
+    const r = checkPromptPack(pack());
+    expect(r.passed).toBe(true);
+    expect(r.score).toBe(100);
+  });
+  it("flags too few, duplicates, claims, placeholders, no variable", () => {
+    const p = pack(3);
+    p.prompts[1] = { ...p.prompts[0]! };
+    p.summary = "Guarantee passive income TODO";
+    p.prompts[2]!.prompt = "short";
+    const codes = checkPromptPack(p).issues.map((i) => i.code);
+    for (const c of ["too_few_prompts", "duplicate_name", "duplicate_prompt", "income_claim", "placeholder_text", "prompt_too_short", "no_variable"]) expect(codes).toContain(c);
+    expect(checkPromptPack(p).passed).toBe(false);
+  });
+  it("renders markdown and a bundle", () => {
+    const p = pack();
+    expect(promptPackToMarkdown(p)).toContain("## 15. Prompt 15");
+    const b = promptPackToBundle(p);
+    expect(b.files[0]!.bytes).toBeGreaterThan(100);
+    expect(b.currency).toBe("USD");
+  });
+});

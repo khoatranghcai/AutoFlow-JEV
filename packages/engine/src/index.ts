@@ -5,3 +5,4 @@ export * from "./capital";
 export * from "./pipeline";
 export * from "./niches";
 export * from "./listing";
+export * from "./product";
