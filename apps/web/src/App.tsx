@@ -7,6 +7,7 @@ import { LogInspector } from "./LogInspector";
 import { TelegramGate } from "./TelegramGate";
 import { auditEntry, type AuditEntry } from "./telegram";
 import { AgentNetwork } from "./AgentNetwork";
+import { ProductsPanel } from "./ProductsPanel";
 import { applyEvent, emptyRun, type RunView } from "./runView";
 import * as api from "./apiClient";
 
@@ -257,6 +258,10 @@ export function App() {
       </div>
 
       <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-1">
+        <section className={card}>
+          <h2 className={h2}>{L("products.title")}</h2>
+          {api.LIVE ? <ProductsPanel locale={locale} initialNiche={niche} /> : <p className="text-[12.5px] text-muted">{L("products.simOnly")}</p>}
+        </section>
         <section className={card}>
           <h2 className={h2}>{L("telegram")}</h2>
           <TelegramGate proposal={view.proposal} audit={audit} locale={locale} onDecide={api.LIVE ? decideLive : decide} />

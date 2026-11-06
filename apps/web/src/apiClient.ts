@@ -40,3 +40,13 @@ export interface NicheSuggestion { source: "claude" | "catalog"; ideas: NicheIde
 /** AI suggestions when the API has an ANTHROPIC_API_KEY, otherwise (or on limits/errors) the static catalog. */
 export const suggestNiches = (exclude: string[] = []) =>
   call<NicheSuggestion>("/niches/suggest", { method: "POST", body: JSON.stringify({ count: 6, exclude }) });
+
+export interface ProductItem {
+  id: string; niche: string; title: string; priceCents: number; qcScore: number;
+  status: "pending" | "approved" | "rejected"; decidedBy?: string; createdAt: string;
+}
+export const listProducts = () => call<ProductItem[]>("/products");
+export const getProductMarkdown = async (id: string) => (await call<{ markdown: string }>(`/products/${id}`)).markdown;
+export const buildPromptPack = (niche: string) => call<{ product: ProductItem }>("/products/prompt-pack", { method: "POST", body: JSON.stringify({ niche }) });
+export const decideProduct = (id: string, approve: boolean, decidedBy: string) =>
+  call<ProductItem>(`/products/${id}/${approve ? "approve" : "reject"}`, { method: "POST", body: JSON.stringify({ decidedBy }) });
