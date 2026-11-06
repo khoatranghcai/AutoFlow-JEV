@@ -87,5 +87,9 @@
   "cat.service": "Services",
   "cat.education": "Education",
   "cat.community": "Community",
-  "cat.data": "Data & alerts"
+  "cat.data": "Data & alerts",
+  "suggesting": "Searching trends...",
+  "ideasAi": "AI + web trends",
+  "ideasCatalog": "Built-in catalog",
+  "trendLabel": "Trend"
 }

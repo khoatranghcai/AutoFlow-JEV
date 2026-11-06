@@ -1,4 +1,4 @@
-import type { CapitalState, PipelineEvent } from "@autoflow/engine";
+import type { CapitalState, NicheIdea, PipelineEvent } from "@autoflow/engine";
 
 /** Live mode talks to the Fastify API through the Vite dev proxy (/api -> 127.0.0.1:8787). Off by default: the dashboard stays a pure simulation. */
 export const LIVE = import.meta.env.VITE_LIVE_API === "1";
@@ -35,3 +35,8 @@ export const decideProposal = (projectId: string, approve: boolean, decidedBy: s
 
 /** Which storage the API is using ("supabase" or "in-memory"), so the UI can say what is really live. */
 export const getBackend = async () => (await call<{ backend?: string }>("/health")).backend ?? "unknown";
+
+export interface NicheSuggestion { source: "claude" | "catalog"; ideas: NicheIdea[]; note?: string }
+/** AI suggestions when the API has an ANTHROPIC_API_KEY, otherwise (or on limits/errors) the static catalog. */
+export const suggestNiches = (exclude: string[] = []) =>
+  call<NicheSuggestion>("/niches/suggest", { method: "POST", body: JSON.stringify({ count: 6, exclude }) });

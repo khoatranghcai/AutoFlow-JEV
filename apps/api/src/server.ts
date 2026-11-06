@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createSimAgents } from "@autoflow/agents";
 import { InsufficientCapitalError, runPipeline } from "@autoflow/engine";
 import { ConflictError, NotFoundError, type Repo } from "./repo";
+import { createGuard, createNicheService, type NicheService } from "./nicheAi";
 
 export interface ServerOptions {
   repo: Repo;
@@ -10,6 +11,8 @@ export interface ServerOptions {
   maxRunBudgetCents?: number;
   /** Reported by /health so operators can see which storage is live. */
   backend?: "supabase" | "in-memory";
+  /** AI niche suggestions; defaults to the static catalog only. */
+  niches?: NicheService;
 }
 
 const RunBody = z.object({
@@ -19,9 +22,10 @@ const RunBody = z.object({
   armBug: z.boolean().default(false),
   seed: z.number().int().optional(),
 });
+const SuggestBody = z.object({ count: z.number().int().min(1).max(10).default(6), exclude: z.array(z.string().max(200)).max(30).default([]) });
 const DecisionBody = z.object({ decidedBy: z.string().trim().min(1).max(100) });
 
-export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-memory" }: ServerOptions) {
+export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-memory", niches = createNicheService({ guard: createGuard({ minIntervalMs: 0, maxCallsPerDay: 0, dailyBudgetUsd: 0 }) }) }: ServerOptions) {
   const app = Fastify();
 
   app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
@@ -33,6 +37,11 @@ export function buildServer({ repo, maxRunBudgetCents = 5_000, backend = "in-mem
   });
 
   app.get("/health", async () => ({ ok: true, backend }));
+
+  app.post("/niches/suggest", async (req) => {
+    const body = SuggestBody.parse(req.body ?? {});
+    return niches.suggest(body);
+  });
 
   app.get("/capital", async () => repo.balances());
 
