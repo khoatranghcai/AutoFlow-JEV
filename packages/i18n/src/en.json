@@ -71,5 +71,7 @@
   "noProposals": "No proposals yet. SHIP verdicts land here for approval.",
   "shipReady": "SHIP proposal ready",
   "auditTrail": "Audit trail",
-  "telegram": "Telegram Gate"
+  "telegram": "Telegram Gate",
+  "err.api": "API request failed. Is the API running?",
+  "err.overCap": "Budget is above the per-run cap."
 }

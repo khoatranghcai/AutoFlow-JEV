@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createSimAgents } from "@autoflow/agents";
 import type { RiskTolerance } from "@autoflow/config";
 import { InsufficientCapitalError, refund, reserve, runPipeline, settle, type CapitalState, type PipelineEvent, type Reservation } from "@autoflow/engine";
@@ -8,6 +8,7 @@ import { TelegramGate } from "./TelegramGate";
 import { auditEntry, type AuditEntry } from "./telegram";
 import { AgentNetwork } from "./AgentNetwork";
 import { applyEvent, emptyRun, type RunView } from "./runView";
+import * as api from "./apiClient";
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
 const START: CapitalState = { liquid: 4200, pool: 1180, reserved: 0 };
@@ -68,6 +69,42 @@ export function App() {
     setRunning(false);
   }
 
+  // Live mode: the server owns the money. The browser only asks, then re-reads balances.
+  const projectId = useRef<string | null>(null);
+  const refreshCapital = () => api.getCapital().then(setCapital).catch(() => setMessage(L("err.api")));
+  useEffect(() => { if (api.LIVE) void refreshCapital(); }, []);
+
+  async function runLive() {
+    if (!niche.trim()) return setMessage(L("err.noNiche"));
+    setMessage(""); setView(emptyRun()); setRunning(true); projectId.current = null;
+    try {
+      const r = await api.startRun({ niche: niche.trim(), tolerance, maxBudgetUsd: budget, armBug });
+      let v = emptyRun();
+      for (const e of await api.getEvents(r.id)) { v = applyEvent(v, e); setView(v); await new Promise((res) => setTimeout(res, 350)); }
+      if (r.verdict === "SHIP") projectId.current = (await api.getProposals()).find((p) => p.runId === r.id)?.id ?? null;
+      else setMessage(L("killed"));
+    } catch (e) {
+      const code = e instanceof api.ApiError ? e.code : "";
+      setMessage(code === "insufficient_capital" ? L("err.noCapital") : code === "budget_over_cap" ? L("err.overCap") : L("err.api"));
+    }
+    await refreshCapital();
+    setRunning(false);
+  }
+
+  async function decideLive(approve: boolean) {
+    const id = projectId.current;
+    if (!id || !view.proposal) return;
+    try {
+      // The real approver identity comes from the Telegram gate; this dev dashboard records itself.
+      await api.decideProposal(id, approve, "dashboard");
+      setMessage(approve ? L("launched", { net: usd(view.proposal.economics.net) }) : L("rejected"));
+      setAudit((a) => [auditEntry(view.proposal!, approve ? "APPROVED" : "REJECTED"), ...a]);
+      projectId.current = null;
+      setView((v) => ({ ...v, proposal: undefined }));
+    } catch { setMessage(L("err.api")); }
+    await refreshCapital();
+  }
+
   const abort = () => { aborted.current = true; resume.current?.(); };
 
   function decide(approve: boolean) {
@@ -121,7 +158,7 @@ export function App() {
           <label className="mt-3 flex items-center gap-2 text-[13px]"><input type="checkbox" checked={armBug} onChange={(e) => setArmBug(e.target.checked)} disabled={running} /> {L("armBug")}</label>
           <label className="mt-2 flex items-center gap-2 text-[13px]"><input type="checkbox" checked={step} onChange={(e) => setStep(e.target.checked)} disabled={running} /> {L("stepMode")}</label>
           <div className="mt-4 flex flex-wrap gap-2">
-            <button className={btn} onClick={run} disabled={running}>{L("run")}</button>
+            <button className={btn} onClick={api.LIVE ? runLive : run} disabled={running}>{L("run")}</button>
             <button className={btn} onClick={() => resume.current?.()} disabled={paused === null}>{L("next")}</button>
             <button className={btn} onClick={abort} disabled={!running}>{L("abort")}</button>
           </div>
@@ -175,7 +212,7 @@ export function App() {
       <div className="flex min-w-0 flex-col gap-4 lg:col-span-2 xl:col-span-1">
         <section className={card}>
           <h2 className={h2}>{L("telegram")}</h2>
-          <TelegramGate proposal={view.proposal} audit={audit} locale={locale} onDecide={decide} />
+          <TelegramGate proposal={view.proposal} audit={audit} locale={locale} onDecide={api.LIVE ? decideLive : decide} />
         </section>
       <section className={`${card} min-w-0`}>
         <h2 className={h2}>{L("logs")}</h2>
