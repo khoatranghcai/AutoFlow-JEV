@@ -73,5 +73,9 @@
   "auditTrail": "Nhật ký duyệt",
   "telegram": "Cổng duyệt Telegram",
   "err.api": "Gọi API thất bại. API có đang chạy không?",
-  "err.overCap": "Ngân sách vượt hạn mức mỗi lần chạy."
+  "err.overCap": "Ngân sách vượt hạn mức mỗi lần chạy.",
+  "mode.sim": "MÔ PHỎNG",
+  "mode.live": "LIVE (staging)",
+  "mode.liveOther": "API LIVE ({backend})",
+  "footerLive": "Chế độ live: vốn được API giữ và quyết toán trong cơ sở dữ liệu staging (tiền test). Kết quả pipeline vẫn là mô phỏng; không có tiền thật nào bị chi."
 }
