@@ -1,0 +1,12 @@
+{
+  "title": "Bộ máy Bầy đàn AutoFlow",
+  "verdict.KILL": "LOẠI",
+  "verdict.FIX": "SỬA",
+  "verdict.SHIP": "PHÁT HÀNH",
+  "phase.0": "Thu thập & Kiểm tra sức chịu",
+  "phase.1": "Chiến thuật & Mô phỏng rủi ro",
+  "phase.2": "Kiểm toán & Biên lợi nhuận",
+  "phase.3": "Xây dựng & Kiểm thử cách ly",
+  "phase.4": "Phán quyết 3 hướng",
+  "attempt": "Lần thử {n}/3"
+}
