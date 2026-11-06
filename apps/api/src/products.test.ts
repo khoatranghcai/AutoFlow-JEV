@@ -11,7 +11,7 @@ const pack: PromptPack = {
     example: "Monday: deep work 9-11, review inbox 11-11:30, call with client at 14:00.",
   })),
 };
-const builder = { buildPromptPack: async () => ({ ok: true, pack, qc: checkPromptPack(pack), bundle: promptPackToBundle(pack), markdown: promptPackToMarkdown(pack), attempts: 1 }) } as unknown as Builder;
+const builder = { build: async () => ({ ok: true, kind: "prompt_pack", content: pack, qc: checkPromptPack(pack), bundle: promptPackToBundle(pack), markdown: promptPackToMarkdown(pack), attempts: 1 }) } as unknown as Builder;
 const app = () => buildServer({ repo: createMemoryRepo(), builder });
 
 describe("product review queue", () => {

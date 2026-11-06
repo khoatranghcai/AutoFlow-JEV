@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import type { ProductBundle, PromptPack, QcReport } from "@autoflow/engine";
+import type { ProductBundle, ProductKind, QcReport } from "@autoflow/engine";
 import { ConflictError, NotFoundError } from "./repo";
 
 export interface ProductRow {
   id: string;
-  kind: "prompt_pack";
+  kind: ProductKind;
   niche: string;
   title: string;
   priceCents: number;
@@ -15,8 +15,8 @@ export interface ProductRow {
   decidedAt?: string;
   createdAt: string;
 }
-export interface ProductDetail extends ProductRow { pack: PromptPack; qc: QcReport; bundle: ProductBundle; markdown: string }
-export type NewProduct = { niche: string; pack: PromptPack; qc: QcReport; bundle: ProductBundle; markdown: string };
+export interface ProductDetail extends ProductRow { content: unknown; qc: QcReport; bundle: ProductBundle; markdown: string }
+export type NewProduct = { kind: ProductKind; niche: string; content: unknown; qc: QcReport; bundle: ProductBundle; markdown: string };
 
 /** Review queue for built products. Deciding is allowed exactly once and never moves money or publishes. */
 export interface ProductStore {
@@ -27,8 +27,8 @@ export interface ProductStore {
 }
 
 const toRow = (d: ProductDetail): ProductRow => {
-  const { pack, qc, bundle, markdown, ...row } = d;
-  void pack; void qc; void bundle; void markdown;
+  const { content, qc, bundle, markdown, ...row } = d;
+  void content; void qc; void bundle; void markdown;
   return row;
 };
 
@@ -37,9 +37,9 @@ export function createMemoryProductStore(): ProductStore {
   return {
     async add(p) {
       const d: ProductDetail = {
-        id: randomUUID(), kind: "prompt_pack", niche: p.niche, title: p.bundle.title, priceCents: p.bundle.priceCents,
+        id: randomUUID(), kind: p.kind, niche: p.niche, title: p.bundle.title, priceCents: p.bundle.priceCents,
         qcScore: p.qc.score, status: "pending", createdAt: new Date().toISOString(),
-        pack: p.pack, qc: p.qc, bundle: p.bundle, markdown: p.markdown,
+        content: p.content, qc: p.qc, bundle: p.bundle, markdown: p.markdown,
       };
       items.set(d.id, d);
       return toRow(d);
@@ -68,8 +68,8 @@ export function createSupabaseProductStore(url: string, serviceKey: string): Pro
   return {
     async add(p) {
       const { data, error } = await db.from("products").insert({
-        kind: "prompt_pack", niche: p.niche, title: p.bundle.title, price_cents: p.bundle.priceCents, qc_score: p.qc.score,
-        content: { pack: p.pack, qc: p.qc, bundle: p.bundle }, markdown: p.markdown,
+        kind: p.kind, niche: p.niche, title: p.bundle.title, price_cents: p.bundle.priceCents, qc_score: p.qc.score,
+        content: { content: p.content, qc: p.qc, bundle: p.bundle }, markdown: p.markdown,
       }).select(LIST_COLS).single();
       if (error) fail(error);
       return fromDb(data);
@@ -83,7 +83,7 @@ export function createSupabaseProductStore(url: string, serviceKey: string): Pro
       const { data, error } = await db.from("products").select("*").eq("id", id).maybeSingle();
       if (error) fail(error);
       if (!data) throw new NotFoundError("not_found");
-      return { ...fromDb(data), pack: data.content.pack, qc: data.content.qc, bundle: data.content.bundle, markdown: data.markdown };
+      return { ...fromDb(data), content: data.content.content, qc: data.content.qc, bundle: data.content.bundle, markdown: data.markdown };
     },
     async decide(id, action, decidedBy) {
       // Conditional update: only a pending row can be decided, so two reviewers cannot both win.
