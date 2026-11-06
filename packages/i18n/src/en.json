@@ -57,5 +57,15 @@
   "st.active": "working",
   "st.done": "done",
   "st.error": "error",
-  "st.warn": "waiting"
+  "st.warn": "waiting",
+  "filterPh": "Filter events or payload…",
+  "all": "all",
+  "lvl.info": "INF",
+  "lvl.success": "OK",
+  "lvl.warn": "WRN",
+  "lvl.error": "ERR",
+  "copyJson": "Copy JSON",
+  "copied": "Copied",
+  "clearLogs": "Clear logs",
+  "noLogs": "No log events match."
 }

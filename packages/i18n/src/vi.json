@@ -57,5 +57,15 @@
   "st.active": "đang chạy",
   "st.done": "xong",
   "st.error": "lỗi",
-  "st.warn": "chờ duyệt"
+  "st.warn": "chờ duyệt",
+  "filterPh": "Lọc sự kiện hoặc dữ liệu…",
+  "all": "tất cả",
+  "lvl.info": "TIN",
+  "lvl.success": "ĐẠT",
+  "lvl.warn": "CẢNH",
+  "lvl.error": "LỖI",
+  "copyJson": "Sao chép JSON",
+  "copied": "Đã chép",
+  "clearLogs": "Xóa log",
+  "noLogs": "Không có sự kiện nào khớp."
 }
