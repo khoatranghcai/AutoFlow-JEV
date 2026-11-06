@@ -41,6 +41,7 @@ export function ProductsPanel({ locale, initialNiche }: { locale: Locale; initia
       <select className={field} value={kind} onChange={(e) => setKind(e.target.value as api.ProductKind)} disabled={busy}>
         <option value="prompt_pack">{t(locale, "products.kind.prompt_pack")}</option>
         <option value="sheet_template">{t(locale, "products.kind.sheet_template")}</option>
+        <option value="checklist">{t(locale, "products.kind.checklist")}</option>
       </select>
       <label className="mb-1 mt-2 block text-[12px] text-muted">{t(locale, "products.niche")}</label>
       <input className={field} value={niche} onChange={(e) => setNiche(e.target.value)} disabled={busy} />
@@ -54,6 +55,7 @@ export function ProductsPanel({ locale, initialNiche }: { locale: Locale; initia
               <div className="text-muted">${(p.priceCents / 100).toFixed(2)} · {t(locale, "products.qc", { n: p.qcScore })} · <span className={p.status === "approved" ? "text-emerald" : p.status === "rejected" ? "text-magenta" : "text-amber"}>{t(locale, `products.status.${p.status}` as never)}</span></div>
               <div className="mt-1 flex gap-2">
                 <button className={btn} onClick={() => toggle(p.id)}>{t(locale, "products.view")}</button>
+                {p.kind === "checklist" && <a className={btn} href={`/api/products/${p.id}/checklist.pdf`} target="_blank" rel="noreferrer">{t(locale, "products.pdf")}</a>}
                 {p.status === "pending" && <>
                   <button className={btn} onClick={() => decide(p.id, true)}>{t(locale, "approve")}</button>
                   <button className={btn} onClick={() => decide(p.id, false)}>{t(locale, "reject")}</button>

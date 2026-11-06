@@ -56,3 +56,18 @@ describe("sheet template QC", () => {
     for (const c of ["too_few_tabs", "duplicate_tab", "ragged_row", "bad_formula", "income_claim"]) expect(codes).toContain(c);
   });
 });
+
+import { checkChecklist, checklistToMarkdown, type ChecklistDoc } from "./product";
+const cl = (): ChecklistDoc => ({ title: "Launch", audience: "creators", summary: "Before you launch a product.", sections: Array.from({ length: 4 }, (_, s) => ({ heading: `Step ${s}`, items: Array.from({ length: 5 }, (_, i) => ({ text: `Do task ${s}-${i} carefully` })) })) });
+describe("checklist QC", () => {
+  it("passes a good checklist and renders tick boxes", () => {
+    expect(checkChecklist(cl()).passed).toBe(true);
+    expect(checklistToMarkdown(cl())).toContain("- [ ] Do task 0-0 carefully");
+  });
+  it("flags few sections, few items, duplicates, claims", () => {
+    const c = cl(); c.sections = c.sections.slice(0, 2); c.sections[0]!.items = c.sections[0]!.items.slice(0, 2);
+    c.sections[1]!.items[1] = { ...c.sections[1]!.items[0]! }; c.summary = "Guaranteed passive income";
+    const codes = checkChecklist(c).issues.map((i) => i.code);
+    for (const k of ["too_few_sections", "too_few_items", "duplicate_item", "income_claim"]) expect(codes).toContain(k);
+  });
+});

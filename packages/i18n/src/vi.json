@@ -108,5 +108,7 @@
   "products.simOnly": "Tạo sản phẩm cần chế độ live (pnpm --filter @autoflow/web dev:live).",
   "products.kind.prompt_pack": "Gói prompt",
   "products.kind.sheet_template": "Mẫu Notion/Sheets",
-  "products.kindLabel": "Loại sản phẩm"
+  "products.kindLabel": "Loại sản phẩm",
+  "products.kind.checklist": "Checklist (PDF)",
+  "products.pdf": "Tải PDF"
 }

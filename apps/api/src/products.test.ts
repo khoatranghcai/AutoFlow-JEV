@@ -38,3 +38,21 @@ describe("product review queue", () => {
     expect((await a.inject({ method: "POST", url: "/products/x/approve", payload: {} })).statusCode).toBe(400);
   });
 });
+
+import { checklistToPdf } from "./pdf";
+describe("checklist pdf", () => {
+  const doc = { title: "Launch checklist", audience: "creators", summary: "Everything before you launch.", sections: [{ heading: "Prepare", items: [{ text: "Write the product description" }, { text: "Smart “quotes” and Việt are replaced safely", note: "tip" }] }] };
+  it("renders a valid PDF", async () => {
+    const bytes = await checklistToPdf(doc);
+    expect(Buffer.from(bytes.slice(0, 5)).toString()).toBe("%PDF-");
+  });
+  it("serves the PDF only for checklist products", async () => {
+    const a = buildServer({ repo: createMemoryRepo(), builder: { build: async () => ({ ok: true, kind: "checklist", content: doc, qc: { passed: true, score: 100, issues: [] }, bundle: { title: "t", description: "d", priceCents: 900, currency: "USD", files: [], tags: [] }, markdown: "# x", attempts: 1 }) } as unknown as Builder });
+    const id = (await a.inject({ method: "POST", url: "/products/checklist", payload: { niche: "launch checklist" } })).json().product.id;
+    const res = await a.inject(`/products/${id}/checklist.pdf`);
+    expect(res.headers["content-type"]).toBe("application/pdf");
+    expect(res.rawPayload.subarray(0, 5).toString()).toBe("%PDF-");
+    const other = await app().inject({ method: "POST", url: "/products/prompt-pack", payload: { niche: "planner prompts" } });
+    expect((await app().inject(`/products/${other.json().product.id}/checklist.pdf`)).statusCode).toBe(404);
+  });
+});

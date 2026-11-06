@@ -47,8 +47,8 @@ export interface ProductItem {
 }
 export const listProducts = () => call<ProductItem[]>("/products");
 export const getProductMarkdown = async (id: string) => (await call<{ markdown: string }>(`/products/${id}`)).markdown;
-export type ProductKind = "prompt_pack" | "sheet_template";
+export type ProductKind = "prompt_pack" | "sheet_template" | "checklist";
 export const buildProduct = (kind: ProductKind, niche: string) =>
-  call<{ product: ProductItem }>(`/products/${kind === "prompt_pack" ? "prompt-pack" : "sheet-template"}`, { method: "POST", body: JSON.stringify({ niche }) });
+  call<{ product: ProductItem }>(`/products/${{ prompt_pack: "prompt-pack", sheet_template: "sheet-template", checklist: "checklist" }[kind]}`, { method: "POST", body: JSON.stringify({ niche }) });
 export const decideProduct = (id: string, approve: boolean, decidedBy: string) =>
   call<ProductItem>(`/products/${id}/${approve ? "approve" : "reject"}`, { method: "POST", body: JSON.stringify({ decidedBy }) });
